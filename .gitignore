@@ -6,3 +6,5 @@
 !/static/trainer.png
 /sizes/*
 !/sizes/missing-no
+pokesize.pem
+pokesize.key
