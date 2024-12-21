@@ -104,19 +104,24 @@
             font-style: normal;
             overflow: clip;
             background: rgb(98,153,81);
-            background: linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(20,2,28,255) 50%, rgba(20,2,28,255) 100%);
+            background: linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(17,0,26,255) 50%, rgba(17,0,26,255) 100%);
         }
         #panel {
+            color: white;
             position: absolute;
             margin: 30px;
             width: 15%;
             height: 90%;
-            background-color: slategray;
             display: flex;
+            padding: 10px;
+            border-radius: 30px;
+            border: 7px solid #13021CFF;
             flex-direction: column;
             justify-content: space-between;
             transition-duration: 600ms;
             z-index: 2000;
+            background: rgb(19,2,28);
+            background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
         }
 
         .subPanel {
@@ -131,6 +136,7 @@
             justify-content: space-between;
             align-items: center;
             text-align: center;
+
         }
 
         #closeButton {
@@ -184,7 +190,8 @@
             flex-grow: 20;
         }
         #monSubmit {
-            aspect-ratio: 1/1;
+            height: 36px;
+            width: 36px;
         }
 
         #background {
@@ -196,6 +203,13 @@
             z-index: -1;
             background-position-y: bottom;
 
+        }
+        .selectize-control {
+            width: 100%;
+        }
+
+        .inputLine {
+            margin-bottom: 15px;
         }
     </style>
 </head>
