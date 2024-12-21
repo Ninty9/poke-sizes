@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<head>
+    <script>
+        function closePanel() {
+            var panel = document.getElementById("panel");
+            var button = document.getElementById("closeButton");
+            if(panel.classList.contains("hide")) {
+                panel.classList.remove("hide")
+                button.innerText = "<"
+            } else {
+                panel.classList.add("hide")
+                button.innerText = ">"
+            }
+        }
+
+
+    </script>
+
+    <style>
+
+        body {
+            background-color: dimgrey;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+        #panel {
+            position: absolute;
+            margin: 30px;
+            width: 15%;
+            height: 90%;
+            background-color: slategray;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition-duration: 600ms;
+        }
+
+        .subPanel {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+        }
+
+        .flexLine {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+        }
+
+        #closeButton {
+            aspect-ratio: 1 / 1;
+            margin: 20px;
+        }
+        .hide {
+            transform: translateX(-90%);
+        }
+
+        .pokemonContainer {
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            height: 100%;
+
+        }
+
+        datalist {
+            display: none;
+        }
+    </style>
+</head>
+<html>
+<body>
+<div id="panel">
+    <div class="subPanel">
+        <div class="flexLine">
+            <div style="margin: 20px"></div>
+            <div style="flex-grow: 20">PokéSizes {{height}}</div>
+            <button id="closeButton" onclick="closePanel()"><</button>
+        </div>
+        {{#each mons}}
+            <div class="flexLine">
+                <span>{{this.name}}</span>
+                <form id="{{this.name}}" action="/remove" method="post">
+                    <input hidden="hidden" name="mon" value="{{this.name}}" />
+                    <input type="submit">
+                </form>
+            </div>
+        {{/each}}
+    </div>
+    <form id="addMon" action="/add" method="post">
+        <label for="mon">Id:</label>
+        <input type="text" id="mon" name="mon" placeholder="Enter Here" list="mon_names"/>
+        <datalist id="mon_names">
+        {{#each mon_names}}
+            <option value="{{this}}">{{this}}</option>
+        {{/each}}
+        </datalist>
+        <input type="submit">
+    </form>
+</div>
+<div class="pokemonContainer">
+    {{#each mons}}
+        <img style="height: {{this.size}}vh" src="{{this.image}}">
+    {{/each}}
+</div>
+
+</body>
+</html>

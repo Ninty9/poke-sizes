@@ -1,0 +1,12 @@
+[package]
+name = "poke-sizes"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = "0.12.9"
+rocket = { version = "0.5.1", features = ["serde_json"] }
+rocket_dyn_templates = { version = "0.2.0", features = ["handlebars"] }
+rustemon = "4.0.0"
+serde = { version = "1.0.216", features = ["derive"] }
+image = "0.25.5"
