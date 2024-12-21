@@ -35,37 +35,34 @@ async fn index(cookies: &CookieJar<'_>) -> Template {
     })
 }
 
-#[get("/invalid/<name>")]
-async fn index_invalid(cookies: &CookieJar<'_>, name: &str) -> Template {
-    let rustemon_client = rustemon::client::RustemonClient::default();
-    Template::render("index", context! {
-        mon_names: get_species(&rustemon_client).await,
-        mons: get_mons(cookies, &rustemon_client).await,
-        invalid: name
-    })
-}
 async fn get_species(rustemon_client: &RustemonClient) -> Vec<String> {
     let species = rustemon::pokemon::pokemon::get_all_entries(&rustemon_client)
         .await
         .unwrap();
-    species.into_iter().map(|species| species.name).collect()
+    species.into_iter().map(|species| convert_to_title_case(species.name)).collect()
 }
 
 async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> Vec<Mon> {
     let mut pokemon: Vec<Mon> = Vec::new();
-    pokemon.push(Mon {
-        name: String::from("Trainer"),
-        image: get_file("Trainer", &rustemon_client).await,
-        size: 18f32
-    });
     let cookie = match cookies.get("mons") {
         Some(cookie) => {
             let mut parts: Vec<&str> = cookie.value().split(";").collect();
             for part in parts {
+                if part == "" {
+                    continue;
+                }
+                if part == "trainer" {
+                    pokemon.push(Mon {
+                        name: String::from("Trainer"),
+                        image: get_file("trainer", &rustemon_client).await,
+                        size: 18f32
+                    });
+                    continue;
+                }
                 match rustemon::pokemon::pokemon::get_by_name(part, &rustemon_client).await {
                     Ok(mon) => {
                         pokemon.push(Mon {
-                            name: mon.name,
+                            name: convert_to_title_case(mon.name),
                             image: get_file(part, &rustemon_client).await,
                             size: size::get_size(part, &rustemon_client).await,
                         })
@@ -73,37 +70,49 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
                     Err(_) => {
                         pokemon.push(Mon {
                             name: String::from("MissingNo"),
-                            image: get_file("MissingNo", &rustemon_client).await,
-                            size: size::get_size("MissingNo", &rustemon_client).await,
+                            image: get_file("missing-no", &rustemon_client).await,
+                            size: size::get_size("missing-no", &rustemon_client).await,
                         })
                     }
                 };
             }
         }
-        _ => {}
+        _ => {
+            pokemon.push(Mon {
+                name: String::from("Trainer"),
+                image: get_file("trainer", &rustemon_client).await,
+                size: 18f32
+            });
+            cookies.add(Cookie::new("mons", "trainer"))
+        }
     };
     pokemon.sort_by_key(|p| p.size as i16);
-    let tallest_size: f32 = pokemon[pokemon.len() - 1].size;
-    for p in &mut pokemon {
-        p.size = (p.size / tallest_size) * 100f32;
-    }
     pokemon
 }
+
 
 #[post("/add", data = "<mon>")]
 async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
     let rustemon_client = rustemon::client::RustemonClient::default();
-    match rustemon::pokemon::pokemon::get_by_name(&mon.to_string(), &rustemon_client).await {
+    let mon_str = mon.to_string().replace(" ", "-").to_lowercase();
+    match rustemon::pokemon::pokemon::get_by_name(&mon_str, &rustemon_client).await {
         Ok(_) => {}
-        Err(_) => { return Redirect::to(String::from("invalid/") + mon.to_string().as_str()); }
+        Err(_) => {
+            if &mon_str != "trainer" && &mon_str != "missing-no" {
+                return Redirect::to(String::from("invalid/") + convert_to_title_case(mon.to_string()).as_str());
+            }
+        }
     }
 
     match cookies.get("mons") {
         Some(mons) => {
-            println!("{}", mons);
-            cookies.add(Cookie::new("mons", mons.value().to_string() + ";"+ &mon.to_string()));
+            if(mons.value().to_string() != "") {
+                cookies.add(Cookie::new("mons", mons.value().to_string() + ";"+ mon_str.as_str()));
+            } else {
+                cookies.add(Cookie::new("mons", mon_str));
+            }
         }
-        None => { cookies.add(Cookie::new("mons", mon.to_string())); },
+        None => cookies.add(Cookie::new("mons", mon_str))
     }
     Redirect::to(uri!(index))
 }
@@ -113,13 +122,9 @@ fn remove_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
     match cookies.get("mons") {
         Some(cookie) => {
             let mut parts: Vec<&str> = cookie.value().split(";").collect();
-            parts.retain(|&m| m != mon.to_string());
+            parts.retain(|&m| m != mon.to_string().to_lowercase().replace(" ", "-"));
             let mut mons: String = parts.join(";");
-            if(mons == "") {
-                cookies.remove("mons");
-            } else{
-                cookies.add(Cookie::new("mons", mons));
-            }
+            cookies.add(Cookie::new("mons", mons));
         }
         None => return Redirect::to(uri!(index)),
     }
@@ -139,8 +144,22 @@ fn not_found(req: &Request) -> String {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, add_mon, remove_mon, reset_mons, index_invalid])
+    rocket::build().mount("/", routes![index, add_mon, remove_mon, reset_mons])
         .mount("/static", rocket::fs::FileServer::from("static"))
+        .register("/", catchers![not_found])
         .attach(Template::fairing())
 }
 
+fn convert_to_title_case(input: String) -> String {
+    input
+        .split('-')  // Split the string by dashes
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first_char) => first_char.to_uppercase().collect::<String>() + chars.as_str(),  // Capitalize the first character and append the rest
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<String>>()  // Collect the words into a vector
+        .join(" ")  // Join the words with spaces
+}

@@ -1,0 +1,7 @@
+[default]
+address = "192.168.0.7"
+limits = { form = "64 kB", json = "1 MiB" }
+
+[default.tls]
+key = "path/to/key.pem"     # Path or bytes to DER-encoded ASN.1 PKCS#1/#8 or SEC1 key.
+certs = "path/to/certs.pem" # Path or bytes to DER-encoded X.509 TLS cert chain.

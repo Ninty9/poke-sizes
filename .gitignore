@@ -1,8 +1,8 @@
 /target
 /http-cacache
 /static/*
-!/static/MissingNo.png
-!/static/MissingNo2.png
-!/static/Trainer.png
+!/static/missing-no.png
+!/static/missing-no2.png
+!/static/trainer.png
 /sizes/*
-!/sizes/MissingNo
+!/sizes/missing-no
