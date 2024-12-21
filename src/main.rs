@@ -8,12 +8,13 @@ use std::future::Future;
 use std::num::ParseIntError;
 use std::panic;
 use std::panic::AssertUnwindSafe;
-use rocket::{get, routes};
+use rocket::{get, routes, Request};
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::serde::{Deserialize, Serialize};
 use rocket_dyn_templates::{context, Template};
+use rustemon::client::RustemonClient;
 use rustemon::error::Error;
 use rustemon::model::pokemon::Pokemon;
 use crate::images::get_file;
@@ -28,18 +29,36 @@ struct Mon {
 #[get("/")]
 async fn index(cookies: &CookieJar<'_>) -> Template {
     let rustemon_client = rustemon::client::RustemonClient::default();
+    Template::render("index", context! {
+        mon_names: get_species(&rustemon_client).await,
+        mons: get_mons(cookies, &rustemon_client).await
+    })
+}
+
+#[get("/invalid/<name>")]
+async fn index_invalid(cookies: &CookieJar<'_>, name: &str) -> Template {
+    let rustemon_client = rustemon::client::RustemonClient::default();
+    Template::render("index", context! {
+        mon_names: get_species(&rustemon_client).await,
+        mons: get_mons(cookies, &rustemon_client).await,
+        invalid: name
+    })
+}
+async fn get_species(rustemon_client: &RustemonClient) -> Vec<String> {
     let species = rustemon::pokemon::pokemon::get_all_entries(&rustemon_client)
         .await
         .unwrap();
-    let species_names: Vec<String> = species.into_iter().map(|species| species.name).collect();
+    species.into_iter().map(|species| species.name).collect()
+}
 
+async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> Vec<Mon> {
     let mut pokemon: Vec<Mon> = Vec::new();
     pokemon.push(Mon {
         name: String::from("Trainer"),
-        image: get_file("Trainer", &rustemon_client),
+        image: get_file("Trainer", &rustemon_client).await,
         size: 18f32
     });
-    match cookies.get("mons") {
+    let cookie = match cookies.get("mons") {
         Some(cookie) => {
             let mut parts: Vec<&str> = cookie.value().split(";").collect();
             for part in parts {
@@ -47,32 +66,37 @@ async fn index(cookies: &CookieJar<'_>) -> Template {
                     Ok(mon) => {
                         pokemon.push(Mon {
                             name: mon.name,
-                            image: images::get_file(part, &rustemon_client).await,
-                            size: mon.height as f32,
+                            image: get_file(part, &rustemon_client).await,
+                            size: size::get_size(part, &rustemon_client).await,
                         })
                     }
                     Err(_) => {
                         pokemon.push(Mon {
-                        name: String::from("MissingNo"),
-                        image: images::get_file("MissingNo", &rustemon_client).await,
-                        size: 33f32,
+                            name: String::from("MissingNo"),
+                            image: get_file("MissingNo", &rustemon_client).await,
+                            size: size::get_size("MissingNo", &rustemon_client).await,
                         })
                     }
-                }
+                };
             }
         }
         _ => {}
-    }
+    };
     pokemon.sort_by_key(|p| p.size as i16);
-    let tallest_size: f32 = pokemon[pokemon.len()-1].size;
+    let tallest_size: f32 = pokemon[pokemon.len() - 1].size;
     for p in &mut pokemon {
         p.size = (p.size / tallest_size) * 100f32;
     }
-    Template::render("index", context! {mon_names: species_names, mons: pokemon})
+    pokemon
 }
 
 #[post("/add", data = "<mon>")]
-fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
+async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
+    let rustemon_client = rustemon::client::RustemonClient::default();
+    match rustemon::pokemon::pokemon::get_by_name(&mon.to_string(), &rustemon_client).await {
+        Ok(_) => {}
+        Err(_) => { return Redirect::to(String::from("invalid/") + mon.to_string().as_str()); }
+    }
 
     match cookies.get("mons") {
         Some(mons) => {
@@ -107,9 +131,15 @@ fn reset_mons(cookies: &CookieJar<'_>) -> Redirect {
     cookies.remove("mons");
     Redirect::to(uri!(index))
 }
+
+#[catch(404)]
+fn not_found(req: &Request) -> String {
+    format!("Sorry, '{}' is not a valid path.", req.uri())
+}
+
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, add_mon, remove_mon])
+    rocket::build().mount("/", routes![index, add_mon, remove_mon, reset_mons, index_invalid])
         .mount("/static", rocket::fs::FileServer::from("static"))
         .attach(Template::fairing())
 }

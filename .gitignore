@@ -4,3 +4,5 @@
 !/static/MissingNo.png
 !/static/MissingNo2.png
 !/static/Trainer.png
+/sizes/*
+!/sizes/MissingNo

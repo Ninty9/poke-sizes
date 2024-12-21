@@ -9,33 +9,28 @@ pub(crate) async fn get_file(name: &str, rustemon_client: &RustemonClient) -> St
     let path: String = "static/".to_owned() + name + ".png";
     // let path = ;
     if !Path::new(&path).exists() {
-        match rustemon::pokemon::pokemon::get_by_name(name, &rustemon_client).await {
-            Ok(mon) => {
-                let url = mon.sprites.front_default.unwrap();
-                // Download the image
-                match get(url).await {
-                    Ok(response) => {
-                        let bytes = response.bytes().await.unwrap();
-                        let mut img = image::load_from_memory_with_format(&bytes, image::ImageFormat::Png);
-                        match img {
-                            Ok(mut im) => {
-                                // Crop the image to remove transparent margins
-                                let cropped_img = crop_to_remove_transparent_margins(&mut im);
+        let mon = match rustemon::pokemon::pokemon::get_by_name(name, &rustemon_client).await {
+            Ok(mon) => mon,
+            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+        };
 
-                                // Save the cropped image
-                                let _ = cropped_img.save(&path);
-                            }
-                            Err(_) => {return "static/MissingNo2.png".to_owned()}
-                        }
+        let url = mon.sprites.front_default.unwrap();
+        // Download the image
+        let response = match get(url).await {
+            Ok(response) => response,
+            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+        };
 
-                     
-                    }
-                    Err(_) => {return "static/MissingNo2.png".to_owned()}
-                }
+        let bytes = response.bytes().await.unwrap();
+        let mut img = match image::load_from_memory_with_format(&bytes, image::ImageFormat::Png) {
+            Ok(mut img) => img,
+            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+        };
+        // Crop the image to remove transparent margins
+        let cropped_img = crop_to_remove_transparent_margins(&mut img);
 
-            }
-            Err(_) => {return "static/MissingNo2.png".to_owned()}
-        }
+        // Save the cropped image
+        let _ = cropped_img.save(&path);
     }
     path
 }
