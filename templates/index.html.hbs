@@ -213,40 +213,47 @@
         .inputLine {
             margin-bottom: 15px;
         }
+        .superSubPanel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <html>
 <body>
 <div id="panel">
-    <div class="subPanel">
-        <div class="flexLine">
-            <div style="margin: 20px"></div>
-            <div style="flex-grow: 20">PokéSizes {{height}}</div>
-            <button id="closeButton" onclick="closePanel()"><</button>
-        </div>
-        <div class="inputLine">
-            <div class="monSelector">
-                <form id="addMon" action="/add" method="post">
-                    <select id="monSelect" name="mon" id="select-tools" placeholder="Pick a pokemon.">
-                        <option value="Trainer">Trainer</option>
-                        {{#each mon_names}}
-                            <option value="{{this}}">{{this}}</option>
-                        {{/each}}
-                        <option value="MissingNo">MissingNo</option>
-                    </select>
-                    <input id="monSubmit" type="submit" value="+">
-                </form>
-            </div>
-        </div>
-        {{#each mons}}
+    <div class="superSubPanel">
+        <div class="subPanel">
             <div class="flexLine">
-                <span>{{this.name}}</span>
-                <form id="{{this.name}}" action="/remove" method="post">
-                    <input hidden="hidden" name="mon" value="{{this.name}}" />
-                    <input type="submit" value="x">
-                </form>
+                <div style="margin: 20px"></div>
+                <div style="flex-grow: 20">PokéSizes {{height}}</div>
+                <button id="closeButton" onclick="closePanel()"><</button>
             </div>
-        {{/each}}
+            <div class="inputLine">
+                <div class="monSelector">
+                    <form id="addMon" action="/add" method="post">
+                        <select id="monSelect" name="mon" id="select-tools" placeholder="Pick a pokemon.">
+                            <option value="Trainer">Trainer</option>
+                            {{#each mon_names}}
+                                <option value="{{this}}">{{this}}</option>
+                            {{/each}}
+                            <option value="MissingNo">MissingNo</option>
+                        </select>
+                        <input id="monSubmit" type="submit" value="+">
+                    </form>
+                </div>
+            </div>
+            {{#each mons}}
+                <div class="flexLine">
+                    <span>{{this.name}}</span>
+                    <form id="{{this.name}}" action="/remove" method="post">
+                        <input hidden="hidden" name="mon" value="{{this.name}}" />
+                        <input type="submit" value="x">
+                    </form>
+                </div>
+            {{/each}}
+        </div>
     </div>
 </div>
 <div id="container" class="pokemonContainer">
