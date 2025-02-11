@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<head>
+    <title>Pokémon size comparison tool.</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6477192538448766"
+     crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/zoom-any-js@latest/dist/zoom-any-js.css" rel="stylesheet">
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.default.min.css"
+            integrity="sha512-pTaEn+6gF1IeWv3W1+7X7eM60TFu/agjgoHmYhAfLEU8Phuf6JKiiE8YmsNC0aCgQv4192s4Vai8YZ6VNM6vyQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    />
+
+
+    <script>
+        function closePanel() {
+            var panel = document.getElementById("panel");
+            var button = document.getElementById("closeButton");
+            if(panel.classList.contains("hide")) {
+                panel.classList.remove("hide")
+                button.innerText = "<"
+            } else {
+                panel.classList.add("hide")
+                button.innerText = ">"
+            }
+        }
+
+
+
+
+        let content;
+        let container;
+        let isPanning = false;
+        let startX, startY, scrollLeft, scrollTop;
+        let X = 0;
+        let Y = -48.25;
+        let scale = 24;
+        //
+
+        window.onload = function () {
+            content = document.getElementById('content');
+            container = document.getElementById('container');
+            container.addEventListener("wheel", (e) => {
+                if (e.deltaY < 0 && scale < 2000) scale *= 1.33;
+                else if (e.deltaY > 0 && scale > 2) scale /= 1.33;
+                move()
+            });
+
+
+            container.addEventListener('mousedown', (e) => {
+                isPanning = true;
+                container.style.cursor = 'grabbing';
+                startX = e.pageX - container.offsetLeft;
+                startY = e.pageY - container.offsetTop;
+                scrollLeft = container.scrollLeft;
+                scrollTop = container.scrollTop;
+            });
+
+            container.addEventListener('mouseleave', () => {
+                isPanning = false;
+                container.style.cursor = 'grab';
+            });
+
+            container.addEventListener('mouseup', () => {
+                isPanning = false;
+                container.style.cursor = 'grab';
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (!isPanning) return;
+                e.preventDefault();
+                X += ((e.movementX * 0.00006666) / scale)*window.innerHeight;
+                Y += ((e.movementY * 0.00006666) / scale)*window.innerWidth;
+                X = X.clamp(-22, 22)
+                Y = Y.clamp(-49.99, -6)
+                move()
+                console.log(`X: ${X} Y: ${Y} Scale: ${scale}`)
+            });
+            move()
+        };
+
+        Number.prototype.clamp = function(min, max) {
+            return Math.min(Math.max(this, min), max);
+        };
+
+        function move() {
+            const children = container.children // get the child elements
+            for(const child of children){
+                child.style.transform = "scale(" + scale + ") translateX(" + X + "%) translateY(" + Y + "%)"; // pass the scale to the childs only
+            }
+        }
+
+    </script>
+
+    <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js">
+        window.onload = function () {
+            let el = document.getElementById('selector');
+            Sortable.create(el);
+        }
+    </script>
+
+    <style>
+
+        body {
+            background-color: #14021c;
+            height: 100%;
+            image-rendering: pixelated;
+            font-family: "Lexend", serif;
+            font-optical-sizing: auto;
+            font-weight: 500;
+            font-style: normal;
+            overflow: clip;
+            background: rgb(98,153,81);
+            background: linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(17,0,26,255) 50%, rgba(17,0,26,255) 100%);
+        }
+        #panel {
+            color: white;
+            position: absolute;
+            margin: 30px;
+            width: 15%;
+            height: 90%;
+            display: flex;
+            padding: 10px;
+            border-radius: 30px;
+            border: 7px solid #13021CFF;
+            flex-direction: column;
+            justify-content: space-between;
+            transition-duration: 600ms;
+            z-index: 2000;
+            background: rgb(19,2,28);
+            background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
+        }
+
+        .subPanel {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+        }
+
+        .flexLine {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+
+        }
+
+        #closeButton {
+            aspect-ratio: 1 / 1;
+            margin: 20px;
+        }
+        
+        .hide {
+            transform: scale(0.8) translateX(-110%);
+        }
+
+        .pokemonContainer {
+            height: 97vh;
+            position: relative;
+        }
+
+        datalist {
+            display: none;
+        }
+
+        .inputLine {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .content {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+        }
+
+        .unselectable {
+            user-drag: none;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-drag: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .monSelector {
+            width: 100%;
+        }
+        #addMon {
+            display: flex;
+        }
+
+        #monSelect {
+            flex-grow: 20;
+        }
+        #monSubmit {
+            height: 36px;
+            width: 36px;
+        }
+
+        #background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('/static/pokesizesbg.png') repeat-x center center;
+            background-size: 15px 402px; /* Ensure the background image covers the entire container */
+            z-index: -1;
+            background-position-y: bottom;
+
+        }
+        .selectize-control {
+            width: 100%;
+        }
+
+        .inputLine {
+            margin-bottom: 15px;
+        }
+        .superSubPanel {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<html>
+<body>
+<div id="panel">
+    <div class="superSubPanel">
+        <div class="subPanel">
+            <div class="flexLine">
+                <div style="margin: 20px"></div>
+                <div style="flex-grow: 20">PokéSizes {{height}}</div>
+                <button id="closeButton" onclick="closePanel()"><</button>
+            </div>
+            <div class="inputLine">
+                <form id="addMon" action="/add" method="post">
+                    <select id="monSelect" name="mon" id="select-tools" placeholder="Pick a pokemon.">
+                        <option value="Trainer">Trainer</option>
+                        {{#each mon_names}}
+                            <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                        <option value="MissingNo">MissingNo</option>
+                    </select>
+                    <input id="monSubmit" type="submit" value="+">
+                </form>
+            </div>
+            <div id="selector" class="subPanel">
+                {{#each mons}}
+                    <div class="flexLine">
+                        <span>{{this.name}}</span>
+                        <form id="{{this.index}}" action="/remove" method="post">
+                            <input hidden="hidden" name="mon" value="{{this.index}}" />
+                            <input type="submit" value="x">
+                        </form>
+                    </div>
+                {{/each}}
+            </div>
+            </div>
+        </div>
+        <form action="/reset" method="post">
+            <input type="submit" value="Reset">
+        </form>
+    </div>
+</div>
+<div id="container" class="pokemonContainer">
+    <div id="background"></div>
+    <div id="content" class="content">
+        {{#each mons}}
+            <img draggable="false" (dragstart)="false;" class="unselectable" style="height: {{this.size}}px" src="{{this.image}}">
+        {{/each}}
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script
+        src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"
+        integrity="sha512-IOebNkvA/HZjMM7MxL0NYeLYEalloZ8ckak+NDtOViP7oiYzG5vn6WVXyrJDiJPhl4yRdmNAG49iuLmhkUdVsQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Selectize on the select element
+        $('#monSelect').selectize({
+            maxOptions: 3000,
+            plugins: ["drag_drop"],
+        });
+    });
+</script>
+</body>
+</html>

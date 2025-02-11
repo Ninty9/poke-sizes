@@ -1,20 +1,22 @@
 use std::path::Path;
-use image::{DynamicImage, GenericImageView, ImageResult, RgbaImage};
+use image::{DynamicImage, GenericImageView, RgbaImage};
 use reqwest::get;
 use rustemon::client::RustemonClient;
-use rustemon::error::Error;
-use rustemon::model::pokemon::Pokemon;
+
 
 pub(crate) async fn get_file(name: &str, rustemon_client: &RustemonClient) -> String {
     let path: String = "static/".to_owned() + name + ".png";
     // let path = ;
     if !Path::new(&path).exists() {
-        let mon = match rustemon::pokemon::pokemon::get_by_name(name, &rustemon_client).await {
+        let mon = match rustemon::pokemon::pokemon::get_by_name(name, rustemon_client).await {
             Ok(mon) => mon,
             Err(_) => {return "/static/MissingNo2.png".to_owned()}
         };
 
-        let url = mon.sprites.front_default.unwrap();
+        let url = match mon.sprites.front_default {
+            Some(x) => x,
+            None => { return "/static/MissingNo2.png".to_owned() },
+        };
         // Download the image
         let response = match get(url).await {
             Ok(response) => response,
@@ -23,7 +25,7 @@ pub(crate) async fn get_file(name: &str, rustemon_client: &RustemonClient) -> St
 
         let bytes = response.bytes().await.unwrap();
         let mut img = match image::load_from_memory_with_format(&bytes, image::ImageFormat::Png) {
-            Ok(mut img) => img,
+            Ok(img) => img,
             Err(_) => {return "/static/MissingNo2.png".to_owned()}
         };
         // Crop the image to remove transparent margins
