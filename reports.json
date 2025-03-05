@@ -1,0 +1,28 @@
+{
+  "reports": [
+    {
+      "name": "Charmander",
+      "small": 1,
+      "big": 0,
+      "other": 0
+    },
+    {
+      "name": "Ekans",
+      "small": 0,
+      "big": 1,
+      "other": 0
+    },
+    {
+      "name": "Eternatus",
+      "small": 1,
+      "big": 0,
+      "other": 0
+    },
+    {
+      "name": "Trainer",
+      "small": 1,
+      "big": 0,
+      "other": 0
+    }
+  ]
+}

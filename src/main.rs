@@ -3,11 +3,15 @@ mod size;
 
 #[macro_use] extern crate rocket;
 
+use std::fs;
+use std::fs::File;
+use std::path::Path;
 use rocket::{get, routes, Request};
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::serde::{Deserialize, Serialize};
+use rocket::yansi::Paint;
 use rocket_dyn_templates::{context, Template};
 use rustemon::client::RustemonClient;
 use crate::images::get_file;
@@ -121,6 +125,71 @@ async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
     }
     Redirect::to(uri!(compare))
 }
+#[derive(FromForm)]
+struct Report {
+    mon: String,
+    reason: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct MonReport {
+    name: String,
+    small: i16,
+    big: i16,
+    other: i16,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ReportArray {
+    reports: Vec<MonReport>,
+}
+#[post("/report", data = "<report>")]
+fn report_mon(report: Form<Report>) -> Redirect {
+    if !(report.reason == "+" || report.reason == "-" || report.reason == "!") {
+        return Redirect::to(uri!(compare))
+    }
+    println!("{} has issue: {}", report.mon, report.reason);
+    let path = "reports.json";
+    let json: String;
+    let mut a: ReportArray = ReportArray { reports: Vec::new() };
+    if !Path::new(&path).exists() {
+        match File::create(&path) {
+            Ok(_) => { json = "".to_owned() }
+            Err(e) => { error!("Error creating new file: {}", e); return Redirect::to(uri!(compare)); }
+        }
+    } else {
+        json = match fs::read_to_string(path) {
+            Ok(s) => {s}
+            Err(e) => {error!("Error reading file: {}", e); return Redirect::to(uri!(compare));}
+        }
+    }
+    
+    if !json.is_empty() {
+        a = match serde_json::from_str(&json) {
+            Ok(a) => a,
+            Err(e) => {error!("Error deserializing array: {}", e); return Redirect::to(uri!(compare));}
+        };
+    }
+    
+    if !a.reports.iter().any(|r| r.name == report.mon) {
+        a.reports.push(MonReport {name: report.mon.to_owned(), small: 0, big: 0, other: 0});
+    }
+    match report.reason.as_str() {
+        "+" => {a.reports.iter_mut().for_each(|r| if r.name == report.mon {r.big += 1});}
+        "-" => {a.reports.iter_mut().for_each(|r| if r.name == report.mon {r.small += 1});}
+        "!" => {a.reports.iter_mut().for_each(|r| if r.name == report.mon {r.other += 1});}
+        _ => {}
+    }
+    let out:String = match serde_json::to_string(&a) {
+        Ok(s) => s,
+        Err(e) => {error!("Error serializing array: {}", e); return Redirect::to(uri!(compare))}
+    };
+    println!("Wrote to: {}", path);
+    match fs::write(path, out) {
+        Ok(_) => {Redirect::to(uri!(compare))}
+        Err(e) => {error!("Error writing to file: {}", e); Redirect::to(uri!(compare))}
+    }
+}
 
 #[post("/remove", data = "<mon>")]
 fn remove_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
@@ -169,7 +238,7 @@ fn order_mons(cookies: &CookieJar<'_>, order: Form<Order>) -> Redirect {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, compare, add_mon, remove_mon, reset_mons, order_mons])
+    rocket::build().mount("/", routes![index, compare, add_mon, reset_mons, order_mons, remove_mon, report_mon])
         .mount("/static", rocket::fs::FileServer::from("static"))
         .register("/", catchers![not_found])
         .attach(Template::fairing())

@@ -93,6 +93,16 @@
             }
         }
 
+        function IssueWindow(name) {
+            const reportWindow = document.getElementById("reportWindow");
+            const reportName = document.getElementById("reportName")
+            const reportNameHidden = document.getElementById("reportNameHidden")
+            console.log(name)
+            reportWindow.classList.remove("hidden")
+            reportName.innerHTML = name;
+            reportNameHidden.setAttribute("value", name)
+        }
+
     </script>
 
     <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
@@ -102,17 +112,19 @@
             Sortable.create(el);
         }
     </script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
     <style>
 
         body {
-            background-color: #14021c;
+            /*background-color: #14021c;*/
             height: 100%;
             image-rendering: pixelated;
             font-family: "Lexend", serif;
             font-optical-sizing: auto;
             font-weight: 500;
             font-style: normal;
+            text-align: center;
             overflow: clip;
             background: rgb(98,153,81);
             background: linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(17,0,26,255) 50%, rgba(17,0,26,255) 100%);
@@ -124,15 +136,15 @@
             width: 15%;
             height: 90%;
             display: flex;
-            padding: 10px;
-            border-radius: 30px;
-            border: 7px solid #13021CFF;
             flex-direction: column;
             justify-content: space-between;
             transition-duration: 600ms;
-            z-index: 2000;
+            z-index: 100;
             background: rgb(19,2,28);
             background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
+            padding: 10px;
+            border-radius: 30px;
+            border: 7px solid #13021CFF;
         }
 
         .subPanel {
@@ -191,15 +203,14 @@
             -ms-user-select: none;
         }
 
-        .monSelector {
-            width: 100%;
-        }
         #addMon {
             display: flex;
+            width: 100%;
         }
 
         #monSelect {
             flex-grow: 20;
+            width: 80%
         }
         #monSubmit {
             height: 36px;
@@ -229,9 +240,40 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
+        .floatingBG {
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 110%;
+            height: 110%;
+            z-index: 199;
+            position: absolute; top: -10px; left: -10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .floating {
+            width: 30%;
+            height: 20%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 200;
+            background: rgb(19,2,28);
+            background: linear-gradient(37deg, rgb(28, 2, 2) 0%, rgb(114, 40, 40) 100%);
+            padding: 10px;
+            border-radius: 30px;
+            border: 7px solid #1c0202;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+
     </style>
 </head>
-<html>
+<html lang="">
 <body>
 <div id="panel">
     <div class="superSubPanel">
@@ -244,7 +286,8 @@
             <div class="inputLine">
                 <form id="addMon" action="/add" method="post">
                     <select id="monSelect" name="mon" id="select-tools" placeholder="Pick a pokemon.">
-                        <option value="Trainer">Trainer</option>
+<!--                        <option value="Trainer">Trainer</option>-->
+                        <option value="" disabled selected>Select your Pokemon.</option>
                         {{#each mon_names}}
                             <option value="{{this}}">{{this}}</option>
                         {{/each}}
@@ -255,12 +298,17 @@
             </div>
             <div id="selector" class="subPanel">
                 {{#each mons}}
+                    {{if @index}}
                     <div class="flexLine">
-                        <span>{{this.name}}</span>
-                        <form id="{{this.index}}" action="/remove" method="post">
-                            <input hidden="hidden" name="mon" value="{{this.index}}" />
-                            <input type="submit" value="x">
-                        </form>
+                        <div class="flexLine" style="flex-grow: 200">
+<!--                            todo, up or down button that sends a reorder form from index to index+1 or -1, -->
+                            <span>{{this.name}}</span>
+                            <form id="{{this.index}}" action="/remove" method="post">
+                                <input hidden="hidden" name="mon" value="{{this.index}}" />
+                                <button id="submit{{this.name}}"><i class="fa fa-times"></i> </button>
+                            </form>
+                        </div>
+                        <button onclick=IssueWindow("{{this.name}}")><i class="fa fa-warning"></i></button>
                     </div>
                 {{/each}}
             </div>
@@ -269,6 +317,25 @@
         <form action="/reset" method="post">
             <input type="submit" value="Reset">
         </form>
+    </div>
+
+<div id="reportWindow" class="hidden floatingBG">
+    <div class="floating">
+        <div>
+            Report issue with <span id="reportName">name</span>.
+        </div>
+        <div>
+            <form id="reportForm" action="/report" method="post">
+                <input id="reportNameHidden" hidden="hidden" name="mon" value="name" />
+                <select id="reasonSelect" name="reason" >
+                    <option value="+">The Pokémon is too big.</option>
+                    <option value="-">The Pokémon is too small.</option>
+                    <option value="!">Other!</option>
+                </select>
+                <br>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
     </div>
 </div>
 <div id="container" class="pokemonContainer">

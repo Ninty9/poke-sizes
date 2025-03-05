@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-reqwest = "0.12.9"
+reqwest = "0.12.12"
 rocket = { version = "0.5.1", features = ["serde_json", "tls"] }
 rocket_dyn_templates = { version = "0.2.0", features = ["handlebars"] }
 rustemon = "4.0.0"
-serde = { version = "1.0.216", features = ["derive"] }
+serde = { version = "1.0.218", features = ["derive"] }
 image = "0.25.5"
+serde_json = "1.0.133"
