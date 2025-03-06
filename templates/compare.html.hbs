@@ -103,6 +103,10 @@
             reportNameHidden.setAttribute("value", name)
         }
 
+        Handlebars.registerHelper('loud', function (aString) {
+            return aString.toUpperCase()
+        })
+
     </script>
 
     <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
@@ -299,16 +303,17 @@
             <div id="selector" class="subPanel">
                 {{#each mons}}
                     {{if @index}}
+                    <form id="{{this.index}}remove" action="/remove" method="post"></form>
                     <div class="flexLine">
                         <div class="flexLine" style="flex-grow: 200">
 <!--                            todo, up or down button that sends a reorder form from index to index+1 or -1, -->
-                            <span>{{this.name}}</span>
-                            <form id="{{this.index}}" action="/remove" method="post">
-                                <input hidden="hidden" name="mon" value="{{this.index}}" />
-                                <button id="submit{{this.name}}"><i class="fa fa-times"></i> </button>
-                            </form>
+                            <span>{{this.name}} {{log (is_trainer this.name)}}</span>
+                            <input form="{{this.index}}remove" hidden="hidden" name="mon" value="{{this.index}}" />
+                            {{#unless (is_trainer this.name)}}
+                                <button onclick=IssueWindow("{{this.name}}")><i class="fa fa-warning"></i></button>
+                            {{/unless}}
                         </div>
-                        <button onclick=IssueWindow("{{this.name}}")><i class="fa fa-warning"></i></button>
+                        <button id="submit{{this.name}}" form="{{this.index}}remove"><i class="fa fa-times"></i> </button>
                     </div>
                 {{/each}}
             </div>
