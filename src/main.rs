@@ -5,18 +5,15 @@ mod size;
 
 use std::fs;
 use std::fs::File;
-use std::num::ParseFloatError;
 use std::path::Path;
 use rocket::{get, routes, Request};
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::serde::{Deserialize, Serialize};
-use rocket::yansi::Paint;
 use rocket_dyn_templates::{context, Template};
-use rocket_dyn_templates::handlebars::{handlebars_helper, Context, Handlebars, Helper, HelperResult, JsonRender, Output, RenderContext};
+use rocket_dyn_templates::handlebars::{ Context, Handlebars, Helper, HelperResult, Output, RenderContext};
 use rustemon::client::RustemonClient;
-use serde_json::Value;
 use crate::images::get_file;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -25,6 +22,7 @@ struct Mon {
     image: String,
     size: f32,
     index: u8,
+    alpha: bool,
 }
 
 #[get("/")]
@@ -35,7 +33,6 @@ async fn index() -> Template {
 #[get("/compare")]
 async fn compare(cookies: &CookieJar<'_>) -> Template {
     let rustemon_client = rustemon::client::RustemonClient::default();
-    let mut handlebars = rocket_dyn_templates::handlebars::Handlebars::new();
 
     Template::render("compare", context! {
         mon_names: get_species(&rustemon_client).await,
@@ -51,7 +48,7 @@ async fn get_species(rustemon_client: &RustemonClient) -> Vec<String> {
 
 async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> Vec<Mon> {
     let mut pokemon: Vec<Mon> = Vec::new();
-    let trainerHeight: f32 = match cookies.get("tHeight") {
+    let trainer_height: f32 = match cookies.get("tHeight") {
         Some(t) => {
             match t.to_string().parse::<f32>() {
                 Ok(t) => {t}
@@ -67,22 +64,36 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
                 if part.is_empty() {
                     continue;
                 }
-                if part == "trainer" {
+                if part.trim_end_matches("_Alpha") == "trainer" {
+                    let alpha = part.ends_with("_Alpha");
+                    let mut size = trainer_height;
+                    if alpha {
+                        size *= 2f32;
+                    }
                     pokemon.push(Mon {
                         name: String::from("Trainer"),
                         image: get_file("trainer", rustemon_client).await,
-                        size: trainerHeight,
+                        size,
                         index: 0,
+                        alpha,
                     });
                     continue;
                 }
-                match rustemon::pokemon::pokemon::get_by_name(part, rustemon_client).await {
+                match rustemon::pokemon::pokemon::get_by_name(part.trim_end_matches("_Alpha"), rustemon_client).await {
                     Ok(mon) => {
+                        let alpha = part.ends_with("_Alpha");
+                        let mut size = size::get_size(part.trim_end_matches("_Alpha"), rustemon_client).await;
+                        println!("{}",size);
+                        if alpha {
+                            size *= 2f32;
+                        }
+                        println!("{}",size);
                         pokemon.push(Mon {
-                            name: convert_to_title_case(mon.name),
-                            image: get_file(part, rustemon_client).await,
-                            size: size::get_size(part, rustemon_client).await,
+                            name: convert_to_title_case(mon.name.parse().unwrap()),
+                            image: get_file(&mon.name, rustemon_client).await,
+                            size,
                             index: 0,
+                            alpha,
                         })
                     }
                     Err(_) => {
@@ -91,6 +102,7 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
                             image: get_file("missing-no", rustemon_client).await,
                             size: size::get_size("missing-no", rustemon_client).await,
                             index: 0,
+                            alpha: false,
                         })
                     }
                 };
@@ -100,8 +112,9 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
             pokemon.push(Mon {
                 name: String::from("Trainer"),
                 image: get_file("trainer", rustemon_client).await,
-                size: trainerHeight,
+                size: trainer_height,
                 index: 0,
+                alpha: false,
             });
             cookies.add(Cookie::new("mons", "trainer"))
         }
@@ -166,7 +179,7 @@ fn report_mon(report: Form<Report>) -> Redirect {
     let json: String;
     let mut a: ReportArray = ReportArray { reports: Vec::new() };
     if !Path::new(&path).exists() {
-        match File::create(&path) {
+        match File::create(path) {
             Ok(_) => { json = "".to_owned() }
             Err(e) => { error!("Error creating new file: {}", e); return Redirect::to(uri!(compare)); }
         }
@@ -232,7 +245,7 @@ fn not_found(req: &Request) -> String {
 #[derive(FromForm)]
 struct Order {
     from: usize,
-    to: usize
+    up: bool,
 }
 #[post("/order", data = "<order>")]
 fn order_mons(cookies: &CookieJar<'_>, order: Form<Order>) -> Redirect {
@@ -243,29 +256,63 @@ fn order_mons(cookies: &CookieJar<'_>, order: Form<Order>) -> Redirect {
     let mut parts: Vec<&str> = cookie.split(';').collect();
     let element = parts.remove(order.from);
     
-    parts.insert(order.to, element);
+    if order.up {
+        parts.insert(order.from-1, element);
+    } else {
+        parts.insert(order.from+1, element);
+    }
     let mons: String = parts.join(";");
     cookies.add(Cookie::new("mons", mons));
     Redirect::to(uri!(compare))
 }
 
-fn another_simple_helper (h: &Helper, _: &Handlebars, _: &Context, rc: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
+#[derive(FromForm)]
+struct Alpha {
+    mon: usize,
+    alpha: bool,
+}
+
+
+
+#[post("/alpha", data = "<alpha>")]
+fn alpha(cookies: &CookieJar<'_>, alpha: Form<Alpha>) -> Redirect {
+    let cookie: String = match cookies.get("mons") {
+        None => {return Redirect::to(uri!(compare));}
+        Some(c) => {c.value().to_string()}
+    };
+    let mut parts: Vec<&str> = cookie.split(';').collect();
+    println!("{:#?}", parts);
+    let mut element = parts.remove(alpha.mon).trim_end_matches("_Alpha").to_string();
+    println!("{:#?}", element);
+    println!("{:#?}", alpha.alpha);
+    if !alpha.alpha {
+        element += "_Alpha";
+        parts.insert(alpha.mon, &*element);
+    } else {
+        parts.insert(alpha.mon, &*element);
+    }
+    let mons: String = parts.join(";");
+    cookies.add(Cookie::new("mons", mons));
+    Redirect::to(uri!(compare))
+}
+
+fn is_trainer(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
     let param = h.param(0).unwrap();
     println!("{}", param.value());
     if param.value() == "Trainer" {
         let _ = out.write("true");
-    }else { out.write("false"); }
+    }else { let _ = out.write(""); }
     
     Ok(())
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, compare, add_mon, reset_mons, order_mons, remove_mon, report_mon])
+    rocket::build().mount("/", routes![index, compare, add_mon, reset_mons, order_mons, remove_mon, report_mon, alpha])
         .mount("/static", rocket::fs::FileServer::from("static"))
         .register("/", catchers![not_found])
         .attach(Template::custom(|engines| {
-            engines.handlebars.register_helper("is_trainer", Box::new(another_simple_helper));
+            engines.handlebars.register_helper("is_trainer", Box::new(is_trainer));
         }))
 }
 
