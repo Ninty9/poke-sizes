@@ -26,8 +26,5 @@ pub(crate) async fn get_size(name: &str, rustemon_client: &RustemonClient) -> f3
         return mon.height as f32
     }
     let contents = fs::read_to_string(&path).await.unwrap();
-    match contents.parse::<f32>() {
-        Ok(i) => {i}
-        Err(_) => {666f32}
-    }
+    contents.parse::<f32>().unwrap_or(66.6f32)
 }
