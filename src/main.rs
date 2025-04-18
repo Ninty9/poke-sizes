@@ -85,14 +85,12 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
                         let alpha = part.ends_with("_Alpha");
                         let totem = part.trim_end_matches("_Alpha").ends_with("-totem");
                         let mut size = size::get_size(part.trim_end_matches("_Alpha").trim_end_matches("-totem"), rustemon_client).await;
-                        println!("{}",size);
                         if alpha {
                             size *= 2f32;
                         }
                         if totem {
                             size *= 1.75f32;
                         }
-                        println!("{}",size);
                         pokemon.push(Mon {
                             name: convert_to_title_case(mon.name.parse().unwrap()),
                             image: get_file(mon.name.trim_end_matches("-totem"), rustemon_client).await,
@@ -179,7 +177,6 @@ fn report_mon(report: Form<Report>) -> Redirect {
     if !(report.reason == "+" || report.reason == "-" || report.reason == "!") {
         return Redirect::to(uri!(compare))
     }
-    println!("{} has issue: {}", report.mon, report.reason);
     let path = "data/reports.json";
     let json: String;
     let mut a: ReportArray = ReportArray { reports: Vec::new() };
@@ -215,7 +212,6 @@ fn report_mon(report: Form<Report>) -> Redirect {
         Ok(s) => s,
         Err(e) => {error!("Error serializing array: {}", e); return Redirect::to(uri!(compare))}
     };
-    println!("Wrote to: {}", path);
     match fs::write(path, out) {
         Ok(_) => {Redirect::to(uri!(compare))}
         Err(e) => {error!("Error writing to file: {}", e); Redirect::to(uri!(compare))}
@@ -286,10 +282,7 @@ fn alpha(cookies: &CookieJar<'_>, alpha: Form<Alpha>) -> Redirect {
         Some(c) => {c.value().to_string()}
     };
     let mut parts: Vec<&str> = cookie.split(';').collect();
-    println!("{:#?}", parts);
     let mut element = parts.remove(alpha.mon).trim_end_matches("_Alpha").to_string();
-    println!("{:#?}", element);
-    println!("{:#?}", alpha.alpha);
     if !alpha.alpha {
         element += "_Alpha";
         parts.insert(alpha.mon, &*element);

@@ -77,7 +77,6 @@
                 X = X.clamp(-22, 22)
                 Y = Y.clamp(-49.99, -6)
                 move()
-                console.log(`X: ${X} Y: ${Y} Scale: ${scale}`)
             });
             move()
         };
@@ -97,7 +96,6 @@
             const reportWindow = document.getElementById("reportWindow");
             const reportName = document.getElementById("reportName")
             const reportNameHidden = document.getElementById("reportNameHidden")
-            console.log(name)
             reportWindow.classList.remove("hidden")
             reportName.innerHTML = name;
             reportNameHidden.setAttribute("value", name)
@@ -325,7 +323,7 @@
                             <button id="submit{{this.name}}" form="{{this.index}}alpha">{{#if this.alpha}}a{{/if}}{{#unless this.alpha}}A{{/unless}}</button>
                         </div>
                     <div class="flexLine" style="margin-left: 5px">
-                        <button onclick=IssueWindow("{{this.name}}") {{#if (is_trainer this.name)}} disabled {{/if}}><i class="fa fa-warning"></i></button>
+                        <button onclick="IssueWindow('{{this.name}}')" {{#if (is_trainer this.name)}} disabled {{/if}}><i class="fa fa-warning"></i></button>
                         <button id="submit{{this.name}}" form="{{this.index}}remove"><i class="fa fa-times"></i> </button>
                     </div>
                     </div>
