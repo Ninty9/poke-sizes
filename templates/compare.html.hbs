@@ -273,12 +273,6 @@
         }
         .hidden {
             display: none;
-        /*    test*/
-        }
-
-        .alpha {
-            -webkit-filter: drop-shadow(0 0 1rem crimson);
-            filter: drop-shadow(0 0 1px crimson);
         }
 
     </style>
@@ -367,7 +361,12 @@
     <div id="background"></div>
     <div id="content" class="content">
         {{#each mons}}
-            <img draggable="false" (dragstart)="false;" class="unselectable{{#if this.alpha}} alpha{{/if}}" style="height: {{this.size}}px" src="{{this.image}}">
+            <img draggable="false" (dragstart)="false;" class="unselectable{{#if this.alpha}} alpha{{/if}}"
+                 style="height: {{this.size}}px;
+                    {{#if this.alpha}}
+                        -webkit-filter: drop-shadow(0 0 {{size_to_border this.size}}px crimson);
+                        filter: drop-shadow(0 0 {{size_to_border this.size}}px crimson);
+                    {{/if}}" src="{{this.image}}">
         {{/each}}
     </div>
 </div>

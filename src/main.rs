@@ -5,6 +5,7 @@ mod size;
 
 use std::fs;
 use std::fs::File;
+use std::num::ParseIntError;
 use std::path::Path;
 use rocket::{get, routes, Request};
 use rocket::form::Form;
@@ -82,15 +83,19 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
                 match rustemon::pokemon::pokemon::get_by_name(part.trim_end_matches("_Alpha"), rustemon_client).await {
                     Ok(mon) => {
                         let alpha = part.ends_with("_Alpha");
-                        let mut size = size::get_size(part.trim_end_matches("_Alpha"), rustemon_client).await;
+                        let totem = part.trim_end_matches("_Alpha").ends_with("-totem");
+                        let mut size = size::get_size(part.trim_end_matches("_Alpha").trim_end_matches("-totem"), rustemon_client).await;
                         println!("{}",size);
                         if alpha {
                             size *= 2f32;
                         }
+                        if totem {
+                            size *= 1.75f32;
+                        }
                         println!("{}",size);
                         pokemon.push(Mon {
                             name: convert_to_title_case(mon.name.parse().unwrap()),
-                            image: get_file(&mon.name, rustemon_client).await,
+                            image: get_file(mon.name.trim_end_matches("-totem"), rustemon_client).await,
                             size,
                             index: 0,
                             alpha,
@@ -298,12 +303,26 @@ fn alpha(cookies: &CookieJar<'_>, alpha: Form<Alpha>) -> Redirect {
 
 fn is_trainer(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
     let param = h.param(0).unwrap();
-    println!("{}", param.value());
     if param.value() == "Trainer" {
         let _ = out.write("true");
     }else { let _ = out.write(""); }
     
     Ok(())
+}
+
+fn size_to_border(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
+    let param = h.param(0).unwrap();
+    match param.value().to_string().parse::<f32>() {
+        Ok(x) => {
+            let y = (x/40f32+1f32).floor();
+            let _ = out.write(y.to_string().as_str());
+            Ok(())
+        }
+        Err(e) => {
+            let _ = out.write("1");
+            Ok(())
+        }
+    }
 }
 
 #[launch]
@@ -313,6 +332,7 @@ fn rocket() -> _ {
         .register("/", catchers![not_found])
         .attach(Template::custom(|engines| {
             engines.handlebars.register_helper("is_trainer", Box::new(is_trainer));
+            engines.handlebars.register_helper("size_to_border", Box::new(size_to_border));
         }))
 }
 
