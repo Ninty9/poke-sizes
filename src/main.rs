@@ -55,10 +55,10 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
         Some(t) => {
             match t.to_string().parse::<f32>() {
                 Ok(t) => {t}
-                Err(_) => {cookies.add(Cookie::new("tHeight", "150")); 150f32}
+                Err(_) => {cookies.add(Cookie::new("tHeight", "15")); 15f32}
             }
         }
-        None => {cookies.add(Cookie::new("tHeight", "150")); 150f32}
+        None => {cookies.add(Cookie::new("tHeight", "15")); 15f32}
     };
     match cookies.get("mons") {
         Some(cookie) => {
