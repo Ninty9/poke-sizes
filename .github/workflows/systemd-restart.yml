@@ -12,13 +12,22 @@ jobs:
     steps:
       # Checkout the repository code
       - name: Check out repository code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
+
+      # Add SSH private key
+      - name: Add SSH private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       # SSH into your home server and restart the systemd service
       - name: Restart systemd service
         run: |
-          ssh -o StrictHostKeyChecking=no ninty@your-server-ip << EOF
-          sudo systemctl restart docker-poke-sizes
+          ssh -o StrictHostKeyChecking=no ninty@${{ secrets.SERVER_IP }} << EOF
+          cd /home/ninty/poke-sizes/
+          git pull
+          cargo build --release
+          sudo systemctl restart poke-sizes
           EOF
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
