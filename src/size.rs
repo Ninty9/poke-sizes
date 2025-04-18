@@ -5,7 +5,7 @@ use rocket::tokio::fs;
 use rustemon::client::RustemonClient;
 
 pub(crate) async fn get_size(name: &str, rustemon_client: &RustemonClient) -> f32 {
-    let path: String = "sizes/".to_owned() + name;
+    let path: String = "data/sizes/".to_owned() + name;
     // let path = ;
     if !Path::new(&path).exists() {
         let mon = match rustemon::pokemon::pokemon::get_by_name(name, rustemon_client).await {

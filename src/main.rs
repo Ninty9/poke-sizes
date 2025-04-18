@@ -162,7 +162,7 @@ fn report_mon(report: Form<Report>) -> Redirect {
         return Redirect::to(uri!(compare))
     }
     println!("{} has issue: {}", report.mon, report.reason);
-    let path = "reports.json";
+    let path = "data/reports.json";
     let json: String;
     let mut a: ReportArray = ReportArray { reports: Vec::new() };
     if !Path::new(&path).exists() {
