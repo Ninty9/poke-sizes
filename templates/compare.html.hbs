@@ -367,6 +367,7 @@
         {{#each mons}}
             <img draggable="false" (dragstart)="false;" class="unselectable{{#if this.alpha}} alpha{{/if}}"
                  style="height: {{this.size}}px;
+                         margin-bottom: -{{div_ten_floor this.size}}px;
                     {{#if this.alpha}}
                         -webkit-filter: drop-shadow(0 0 {{size_to_border this.size}}px crimson);
                         filter: drop-shadow(0 0 {{size_to_border this.size}}px crimson);

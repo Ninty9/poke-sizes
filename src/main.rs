@@ -301,6 +301,21 @@ fn is_trainer(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, ou
     
     Ok(())
 }
+fn div_ten_floor(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
+    let param = h.param(0).unwrap();
+    match param.value().to_string().parse::<f32>() {
+        Ok(x) => {
+            let y = (x/10f32).floor();
+            let _ = out.write(y.to_string().as_str());
+            Ok(())
+        }
+        Err(e) => {
+            let _ = out.write("0");
+            Ok(())
+        }
+    }
+}
+
 
 fn size_to_border(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output) -> HelperResult  {
     let param = h.param(0).unwrap();
@@ -325,6 +340,7 @@ fn rocket() -> _ {
         .attach(Template::custom(|engines| {
             engines.handlebars.register_helper("is_trainer", Box::new(is_trainer));
             engines.handlebars.register_helper("size_to_border", Box::new(size_to_border));
+            engines.handlebars.register_helper("div_ten_floor", Box::new(div_ten_floor));
         }))
 }
 
