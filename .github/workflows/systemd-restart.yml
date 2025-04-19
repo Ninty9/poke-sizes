@@ -13,4 +13,4 @@ jobs:
           port: ${{ secrets.PORT }}
           passphrase: ${{ secrets.PASSPHRASE }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: sudo /home/ninty/poke.sh
+          script: /home/ninty/poke.sh
