@@ -5,7 +5,6 @@ mod size;
 
 use std::fs;
 use std::fs::File;
-use std::num::ParseIntError;
 use std::path::Path;
 use rocket::{get, routes, Request};
 use rocket::form::Form;

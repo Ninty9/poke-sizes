@@ -101,6 +101,11 @@
             reportNameHidden.setAttribute("value", name)
         }
 
+        function CloseWindow() {
+            const reportWindow = document.getElementById("reportWindow");
+            reportWindow.classList.add("hidden");
+        }
+
         Handlebars.registerHelper('loud', function (aString) {
             return aString.toUpperCase()
         })
@@ -338,6 +343,7 @@
 
 <div id="reportWindow" class="hidden floatingBG">
     <div class="floating">
+        <button onclick="CloseWindow()" class="closeButton"><i class="fa fa-times"></i> </button>
         <div>
             Report issue with <span id="reportName">name</span>.
         </div>
