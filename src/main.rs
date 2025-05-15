@@ -141,8 +141,7 @@ async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
         Ok(_) => {}
         Err(e) => {
             if &mon_str != "trainer" && &mon_str != "missing-no" {
-                
-                return Redirect::to(format!("invalid/{}/{}", convert_to_title_case(mon.to_string()), e.to_string()));
+                return Redirect::to(uri!(invalid(mon.to_string(),e.to_string())));
             }
         }
     }
