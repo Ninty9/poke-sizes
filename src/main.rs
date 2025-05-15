@@ -140,6 +140,7 @@ async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
     match rustemon::pokemon::pokemon::get_by_name(&mon_str, &rustemon_client).await {
         Ok(_) => {}
         Err(e) => {
+            println!("{:?}", e);
             if &mon_str != "trainer" && &mon_str != "missing-no" {
                 return Redirect::to(uri!(invalid(mon.to_string(),e.to_string())));
             }
