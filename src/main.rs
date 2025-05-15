@@ -3,6 +3,7 @@ mod size;
 
 #[macro_use] extern crate rocket;
 
+use std::fmt::format;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
@@ -127,6 +128,10 @@ async fn get_mons(cookies: &CookieJar<'_>, rustemon_client: &RustemonClient) -> 
     pokemon
 }
 
+#[get("/invalid/<mon>/<error>")]
+async fn invalid(mon: String, error: String) -> String {
+    format!("{} is not a valid mon\nerror: {}", mon, error)
+}
 
 #[post("/add", data = "<mon>")]
 async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
@@ -134,9 +139,10 @@ async fn add_mon(cookies: &CookieJar<'_>, mon: Form<&str>) -> Redirect {
     let mon_str = mon.to_string().replace(' ', "-").to_lowercase();
     match rustemon::pokemon::pokemon::get_by_name(&mon_str, &rustemon_client).await {
         Ok(_) => {}
-        Err(_) => {
+        Err(e) => {
             if &mon_str != "trainer" && &mon_str != "missing-no" {
-                return Redirect::to(String::from("invalid/") + convert_to_title_case(mon.to_string()).as_str());
+                
+                return Redirect::to(format!("invalid/{}/{}", convert_to_title_case(mon.to_string()), e.to_string()));
             }
         }
     }
@@ -334,7 +340,7 @@ fn size_to_border(h: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, compare, add_mon, reset_mons, order_mons, remove_mon, report_mon, alpha])
+    rocket::build().mount("/", routes![index, compare, add_mon, reset_mons, order_mons, remove_mon, report_mon, alpha, invalid])
         .mount("/static", rocket::fs::FileServer::from("static"))
         .register("/", catchers![not_found])
         .attach(Template::custom(|engines| {
