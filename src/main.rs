@@ -41,9 +41,11 @@ async fn compare(cookies: &CookieJar<'_>) -> Template {
     })
 }
 async fn get_species(rustemon_client: &RustemonClient) -> Vec<String> {
-    let species = rustemon::pokemon::pokemon::get_all_entries(rustemon_client)
-        .await
-        .unwrap();
+    let species = match rustemon::pokemon::pokemon::get_all_entries(rustemon_client)
+        .await {
+        Ok(x) => x,
+        Err(_) => return Vec::new(),
+    };
     species.into_iter().map(|species| convert_to_title_case(species.name)).collect()
 }
 
