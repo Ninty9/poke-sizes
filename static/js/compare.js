@@ -87,15 +87,17 @@ function savePanelState(open) {
 }
 
 function restorePanelState() {
-    const saved = sessionStorage.getItem('panelOpen');
+    let saved = sessionStorage.getItem('panelOpen');
     setTimeout(() => {panel.classList.remove('no-transition');}, 10)
-    if (saved == null) return;
     console.log('Restoring panel state:', saved);
+    const isMobile = window.innerWidth <= 767;
+    if ((saved === null || saved === undefined) && !isMobile) saved = 'true';
+    if ((saved === null || saved === undefined) && isMobile) saved = 'false';
     const wasOpen = saved === 'true';
     const panel = document.getElementById('panel');
 
     // Default: desktop open, mobile closed
-    const isMobile = window.innerWidth <= 767;
+
     const shouldBeOpen = wasOpen !== null ? wasOpen : !isMobile;
 
     if (shouldBeOpen) {
