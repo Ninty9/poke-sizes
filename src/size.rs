@@ -10,7 +10,7 @@ pub(crate) async fn get_size(name: &str, rustemon_client: &RustemonClient) -> f3
     if !Path::new(&path).exists() {
         let mon = match rustemon::pokemon::pokemon::get_by_name(name, rustemon_client).await {
             Ok(mon) => mon,
-            Err(_) => {return 666f32}
+            Err(_) => {return 66.6f32}
         };
         let mut file = match File::create(&path) {
             Ok(file) => file,
