@@ -10,23 +10,23 @@ pub(crate) async fn get_file(name: &str, rustemon_client: &RustemonClient) -> St
     if !Path::new(&path).exists() {
         let mon = match rustemon::pokemon::pokemon::get_by_name(name, rustemon_client).await {
             Ok(mon) => mon,
-            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+            Err(_) => {return "/static/missing-no2.png".to_owned()}
         };
 
         let url = match mon.sprites.front_default {
             Some(x) => x,
-            None => { return "/static/MissingNo2.png".to_owned() },
+            None => { return "/static/missing-no2.png".to_owned() },
         };
         // Download the image
         let response = match get(url).await {
             Ok(response) => response,
-            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+            Err(_) => {return "/static/missing-no2.png".to_owned()}
         };
 
         let bytes = response.bytes().await.unwrap();
         let mut img = match image::load_from_memory_with_format(&bytes, image::ImageFormat::Png) {
             Ok(img) => img,
-            Err(_) => {return "/static/MissingNo2.png".to_owned()}
+            Err(_) => {return "/static/missing-no2.png".to_owned()}
         };
         // Crop the image to remove transparent margins
         let cropped_img = crop_to_remove_transparent_margins(&mut img);

@@ -1,0 +1,218 @@
+
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    body::before {
+        content: "Please rotate your device to portrait mode";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.9);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+}
+
+body {
+    /*background-color: #14021c;*/
+    height: 100%;
+    background-color: #629951;
+    image-rendering: pixelated;
+    font-family: "Lexend", serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+    text-align: center;
+    overflow: clip;
+}
+@media (min-width: 768px) {
+    #panel {
+        color: white;
+        position: absolute;
+        margin: 30px;
+        width: 15%;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transform: scale(0.8) translateX(-110%);
+        transition-duration: 600ms;
+        z-index: 100;
+        background: rgb(19,2,28);
+        background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
+        padding: 10px;
+        border-radius: 30px;
+        border: 7px solid #13021CFF;
+    }
+
+    #panel.open {
+        transform: scale(1) translateX(0); /* Open state */
+    }
+}
+
+@media (max-width: 767px) {
+    #panel {
+        color: white;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 70vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+        background: rgb(19,2,28);
+        background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
+        padding: 20px;
+        border-radius: 20px 20px 0 0;
+        border: 7px solid #13021CFF;
+        border-bottom: none;
+        transform: translateY(calc(100% - 60px)); /* Show just a handle */
+        transition: transform 0.3s ease-out;
+    }
+
+    #panel.open {
+        transform: translateY(0);
+    }
+    .remove-mobile {
+        display: none;
+    }
+    .title {
+        margin-bottom: 20px;
+    }
+}
+
+.subPanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+.flexLine {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+
+}
+
+.no-transition {
+    transition: none !important;
+}
+
+.pokemonContainer {
+    height: 97vh;
+    position: relative;
+    touch-action: none; /* Add this for better touch handling */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+datalist {
+    display: none;
+}
+
+.inputLine {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.content {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    transform: translateY(-1vh);
+}
+
+
+#closeButton {
+    aspect-ratio: 1 / 1;
+    margin: 20px;
+}
+.unselectable {
+    user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+#addMon {
+    display: flex;
+    width: 100%;
+}
+
+#monSelect {
+    flex-grow: 20;
+    width: 80%
+}
+#monSubmit {
+    height: 36px;
+    width: 36px;
+}
+
+#background {
+    position: absolute;
+    width: 500%; /* Much wider to cover left/right panning */
+    height: 200%; /* Taller to cover upward panning */
+    left: -100%; /* Center the extra width */
+    top: -101%; /* Cover the top, but leave bottom exposed */
+    background: url('/static/pokesizesbg.png') repeat-x center center;
+    /*linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(17,0,26,255) 50%, rgba(17,0,26,255) 100%);*/
+    background-size: 15px 402px; /* Ensure the background image covers the entire container */
+    background-position-y: bottom;
+    background-color: #11001a; /* Sky color for areas above the texture */
+    z-index: -1;
+
+}
+.selectize-control {
+    width: 100%;
+}
+
+.inputLine {
+    margin-bottom: 15px;
+}
+.superSubPanel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.floatingBG {
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 110%;
+    height: 110%;
+    z-index: 199;
+    position: absolute; top: -10px; left: -10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.floating {
+    width: 30%;
+    height: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 200;
+    background: rgb(19,2,28);
+    background: linear-gradient(37deg, rgb(28, 2, 2) 0%, rgb(114, 40, 40) 100%);
+    padding: 10px;
+    border-radius: 30px;
+    border: 7px solid #1c0202;
+    color: white;
+}
+.hidden {
+    display: none;
+}

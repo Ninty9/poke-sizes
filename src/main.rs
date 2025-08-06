@@ -7,7 +7,7 @@ use std::fmt::format;
 use std::fs;
 use std::fs::File;
 use std::path::Path;
-use rocket::{get, routes, Request};
+use rocket::{get, routes, Request, Response};
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
@@ -16,6 +16,7 @@ use rocket_dyn_templates::{context, Template};
 use rocket_dyn_templates::handlebars::{ Context, Handlebars, Helper, HelperResult, Output, RenderContext};
 use rustemon::client::RustemonClient;
 use crate::images::get_file;
+use std::io::Cursor;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Mon {
@@ -36,6 +37,10 @@ async fn compare(cookies: &CookieJar<'_>) -> Template {
     let rustemon_client = rustemon::client::RustemonClient::default();
 
     Template::render("compare", context! {
+        timestamp: std::time::SystemTime::now()
+    .duration_since(std::time::UNIX_EPOCH)
+    .unwrap()
+    .as_secs(),
         mon_names: get_species(&rustemon_client).await,
         mons: get_mons(cookies, &rustemon_client).await
     })

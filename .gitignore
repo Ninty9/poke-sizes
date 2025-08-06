@@ -7,3 +7,8 @@
 !/static/pokesizesbg.png
 /keys
 /data
+/.idea
+!static/js/
+!static/js/**
+!static/css/
+!static/css/**

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <head>
     <title>Pokémon size comparison tool.</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6477192538448766"
-     crossorigin="anonymous"></script>
+    <link rel="icon" href="/static/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="/static/css/compare.css?v={{timestamp}}">
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/zoom-any-js@latest/dist/zoom-any-js.css" rel="stylesheet">
-
     <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.default.min.css"
@@ -13,282 +12,17 @@
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
     />
-
-
-    <script>
-        function closePanel() {
-            var panel = document.getElementById("panel");
-            var button = document.getElementById("closeButton");
-            if(panel.classList.contains("hide")) {
-                panel.classList.remove("hide")
-                button.innerText = "<"
-            } else {
-                panel.classList.add("hide")
-                button.innerText = ">"
-            }
-        }
-
-
-
-
-        let content;
-        let container;
-        let isPanning = false;
-        let startX, startY, scrollLeft, scrollTop;
-        let X = 0;
-        let Y = -48.25;
-        let scale = 24;
-        //
-
-        window.onload = function () {
-            content = document.getElementById('content');
-            container = document.getElementById('container');
-            container.addEventListener("wheel", (e) => {
-                if (e.deltaY < 0 && scale < 2000) scale *= 1.33;
-                else if (e.deltaY > 0 && scale > 2) scale /= 1.33;
-                move()
-            });
-
-
-            container.addEventListener('mousedown', (e) => {
-                isPanning = true;
-                container.style.cursor = 'grabbing';
-                startX = e.pageX - container.offsetLeft;
-                startY = e.pageY - container.offsetTop;
-                scrollLeft = container.scrollLeft;
-                scrollTop = container.scrollTop;
-            });
-
-            container.addEventListener('mouseleave', () => {
-                isPanning = false;
-                container.style.cursor = 'grab';
-            });
-
-            container.addEventListener('mouseup', () => {
-                isPanning = false;
-                container.style.cursor = 'grab';
-            });
-
-            container.addEventListener('mousemove', (e) => {
-                if (!isPanning) return;
-                e.preventDefault();
-                X += ((e.movementX * 0.00006666) / scale)*window.innerHeight;
-                Y += ((e.movementY * 0.00006666) / scale)*window.innerWidth;
-                X = X.clamp(-22, 22)
-                Y = Y.clamp(-49.99, -6)
-                move()
-            });
-            move()
-        };
-
-        Number.prototype.clamp = function(min, max) {
-            return Math.min(Math.max(this, min), max);
-        };
-
-        function move() {
-            const children = container.children // get the child elements
-            for(const child of children){
-                child.style.transform = "scale(" + scale + ") translateX(" + X + "%) translateY(" + Y + "%)"; // pass the scale to the childs only
-            }
-        }
-
-        function IssueWindow(name) {
-            const reportWindow = document.getElementById("reportWindow");
-            const reportName = document.getElementById("reportName")
-            const reportNameHidden = document.getElementById("reportNameHidden")
-            reportWindow.classList.remove("hidden")
-            reportName.innerHTML = name;
-            reportNameHidden.setAttribute("value", name)
-        }
-
-        function CloseWindow() {
-            const reportWindow = document.getElementById("reportWindow");
-            reportWindow.classList.add("hidden");
-        }
-
-        Handlebars.registerHelper('loud', function (aString) {
-            return aString.toUpperCase()
-        })
-
-    </script>
-
-    <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js">
-        window.onload = function () {
-            let el = document.getElementById('selector');
-            Sortable.create(el);
-        }
-    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-    <style>
-
-        body {
-            /*background-color: #14021c;*/
-            height: 100%;
-            image-rendering: pixelated;
-            font-family: "Lexend", serif;
-            font-optical-sizing: auto;
-            font-weight: 500;
-            font-style: normal;
-            text-align: center;
-            overflow: clip;
-            background: rgb(98,153,81);
-            background: linear-gradient(0deg, rgba(98,153,81,255) 0%, rgba(98,153,81,255) 49.99%, rgba(17,0,26,255) 50%, rgba(17,0,26,255) 100%);
-        }
-        #panel {
-            color: white;
-            position: absolute;
-            margin: 30px;
-            width: 15%;
-            height: 90%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition-duration: 600ms;
-            z-index: 100;
-            background: rgb(19,2,28);
-            background: linear-gradient(37deg, rgba(19,2,28,1) 0%, rgba(73,40,114,1) 100%);
-            padding: 10px;
-            border-radius: 30px;
-            border: 7px solid #13021CFF;
-        }
-
-        .subPanel {
-            display: flex;
-            flex-direction: column;
-            justify-content: start;
-        }
-
-        .flexLine {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            text-align: center;
-
-        }
-
-        #closeButton {
-            aspect-ratio: 1 / 1;
-            margin: 20px;
-        }
-        
-        .hide {
-            transform: scale(0.8) translateX(-110%);
-        }
-
-        .pokemonContainer {
-            height: 97vh;
-            position: relative;
-        }
-
-        datalist {
-            display: none;
-        }
-
-        .inputLine {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-
-        .content {
-            height: 100%;
-            width: 100%;
-            display: flex;
-            align-items: end;
-            justify-content: center;
-        }
-
-        .unselectable {
-            user-drag: none;
-            user-select: none;
-            -moz-user-select: none;
-            -webkit-user-drag: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-        }
-
-        #addMon {
-            display: flex;
-            width: 100%;
-        }
-
-        #monSelect {
-            flex-grow: 20;
-            width: 80%
-        }
-        #monSubmit {
-            height: 36px;
-            width: 36px;
-        }
-
-        #background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: url('/static/pokesizesbg.png') repeat-x center center;
-            background-size: 15px 402px; /* Ensure the background image covers the entire container */
-            z-index: -1;
-            background-position-y: bottom;
-
-        }
-        .selectize-control {
-            width: 100%;
-        }
-
-        .inputLine {
-            margin-bottom: 15px;
-        }
-        .superSubPanel {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .floatingBG {
-            background-color: rgba(0, 0, 0, 0.5);
-            width: 110%;
-            height: 110%;
-            z-index: 199;
-            position: absolute; top: -10px; left: -10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .floating {
-            width: 30%;
-            height: 20%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            z-index: 200;
-            background: rgb(19,2,28);
-            background: linear-gradient(37deg, rgb(28, 2, 2) 0%, rgb(114, 40, 40) 100%);
-            padding: 10px;
-            border-radius: 30px;
-            border: 7px solid #1c0202;
-            color: white;
-        }
-        .hidden {
-            display: none;
-        }
-
-    </style>
 </head>
 <html lang="">
 <body>
-<div id="panel">
+<div id="panel" class="no-transition">
     <div class="superSubPanel">
         <div class="subPanel">
             <div class="flexLine">
-                <div style="margin: 20px"></div>
-                <div style="flex-grow: 20">PokéSizes {{height}}</div>
-                <button id="closeButton" onclick="closePanel()"><</button>
+                <div class="remove-mobile" style="margin: 20px"></div>
+                <div class="title" style="flex-grow: 20;">PokéSizes {{height}}</div>
+                <button id="closeButton" class="remove-mobile" onclick="togglePanel()"><</button>
             </div>
             <div class="inputLine">
                 <form id="addMon" action="/add" method="post">
@@ -365,7 +99,7 @@
     <div id="background"></div>
     <div id="content" class="content">
         {{#each mons}}
-            <img draggable="false" (dragstart)="false;" class="unselectable{{#if this.alpha}} alpha{{/if}}"
+            <img draggable="false" (dragstart)="false;" class="unselectable {{#if this.alpha}} alpha{{/if}}"
                  style="height: {{this.size}}px;
                          margin-bottom: -{{div_ten_floor this.size}}px;
                     {{#if this.alpha}}
@@ -385,5 +119,15 @@
 <script>
     $('#monSelect').selectize();
 </script>
+<script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+
+<!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js">
+    window.onload = function () {
+        let el = document.getElementById('selector');
+        Sortable.create(el);
+    }
+</script>
+<script src="/static/js/compare.js?v={{timestamp}}"></script>
 </body>
 </html>
